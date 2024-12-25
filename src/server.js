@@ -1,5 +1,6 @@
 const app = require('./app');
 const db = require('./config/db');
+const port = process.env.PORT || 5000;
 
 
 db.connect((err) => {
@@ -10,6 +11,6 @@ db.connect((err) => {
     }
 });
 
-app.listen(3000, () => {
-    console.log('Server is running on port 3000');
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
 });

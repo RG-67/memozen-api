@@ -1,11 +1,12 @@
-const { getUsers } = require('./controllers/userController');
+const authRoutes = require('./routes/authRoutes');
+const loggerMiddleware = require('./middlewares/loggerMiddleware');
 
 const express = require('express');
 const app = express();
 
 
-app.use(express.json());
+app.use(loggerMiddleware);
 
-app.get('/api/users', getUsers);
+app.use('/auth', authRoutes);
 
 module.exports = app;
