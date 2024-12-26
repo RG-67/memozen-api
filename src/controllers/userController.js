@@ -28,7 +28,8 @@ const updateUserProfile = async (req, res) => {
         if (checkPhone.rows.length > 0) {
             return res.status(400).json({ status: false, message: 'Phone number already exist', data: {} });
         }
-        const response = await db.query('UPDATE users SET username = $1, email = $2, phone = $3 WHERE userid = $4 RETURNING *', [username, email, phone, userid]);
+        const response = await db.query('UPDATE users SET username = $1, email = $2, phone = $3, updated_at = LOCALTIMESTAMP WHERE userid = $4 RETURNING *', 
+            [username, email, phone, userid]);
         if (response.rows.length === 0) {
             return res.status(404).json({ status: false, message: 'No users found', data: {} });
         }
