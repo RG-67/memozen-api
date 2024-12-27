@@ -1,15 +1,21 @@
 const db = require('../config/db');
+const scheduleReminder = require('../services/scheduleReminder');
 
 
 
 const createTask = async (req, res) => {
     try {
-        const { userid, title, description, deadline, priority, category, status, reminder } = req.body;
+        const { userid, title, description, deadline, priority, category, status, reminder, deviceToken } = req.body;
         const getTaskId = await db.query('SELECT prefix || middle || suffix AS task_id FROM task_id_sequence WHERE id = $1', [1]);
         const taskId = getTaskId.rows[0]?.task_id;
         await db.query('UPDATE task_id_sequence SET suffix = suffix + 1 WHERE id = $1', [1]);
-        const response = await db.query('INSERT INTO tasks (taskid, userid, title, description, deadline, priority, category, status, reminder) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
+        await db.query('INSERT INTO tasks (taskid, userid, title, description, deadline, priority, category, status, reminder) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
             [taskId, userid, title, description, deadline, priority, category, status, reminder]);
+
+        if (reminder !== null && reminder !== "") {
+            scheduleReminder(deviceToken, title, description, new Date(reminder));
+        }
+
         res.status(201).json({ status: true, message: "Task successfully created", data: {} });
     } catch (e) {
         res.status(500).json({ status: false, message: 'Internal server error', data: {} });
