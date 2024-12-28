@@ -41,14 +41,15 @@ const updateTask = async (req, res) => {
     try {
         const { userid, taskid } = req.query;
         const { title, description, deadline, priority, category, status } = req.body;
-        const response = await db.query('UPDATE tasks SET title = $1, description = $2, deadline = $3, priority = $4, category = $5, status = $6 WHERE taskid = $7 AND userid = $8 RETURNING *',
+        const response = await db.query('UPDATE tasks SET title = $1, description = $2, deadline = $3, priority = $4, category = $5, status = $6, updated_at = LOCALTIMESTAMP WHERE taskid = $7 AND userid = $8 RETURNING *',
             [title, description, deadline, priority, category, status, taskid, userid]);
         if (response.rows.length === 0) {
             return res.status(404).json({ status: false, message: 'No task found', data: {} });
         }
-        res.status(200).json({ status: true, message: "Task successfully updated", data: response.rows[0] });
+        const result = await db.query(`Select row_to_json(t)::jsonb - 'id' - 'created_at' - 'updated_at' as result from (Select * from tasks where taskid = $1 and userid = $2)t`, [taskid, userid]);
+        res.status(200).json({ status: true, message: "Task successfully updated", data: result.rows[0].result});
     } catch (e) {
-        res.status(500).json({ status: false, message: 'Internal server error', data: [] });
+        res.status(500).json({ status: false, message: 'Internal server error', data: {} });
         console.error(e);
     }
 }
