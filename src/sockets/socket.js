@@ -14,6 +14,12 @@ module.exports = (server) => {
 
         userEvent(io, socket);
 
+        socket.on('test', (data) => {
+            console.log('Received from client', data);
+
+            socket.emit('response', {message: 'Hello from the TestServer'});
+        });
+
         socket.on('disconnect', () => {
             console.log('User disConnected', socket.id);
         });
