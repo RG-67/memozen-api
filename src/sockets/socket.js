@@ -12,12 +12,23 @@ module.exports = (server) => {
     io.on("connection", (socket) => {
         console.log('User connected', socket.id);
 
-        userEvent(io, socket);
+        socket.emit('serverMessage', { message: 'Welcome to the Server!' });
 
-        socket.on('test', (data) => {
+        socket.broadcast.emit('serverMessage', { message: 'A new user has joined!' });
+
+
+        // userEvent(io, socket);
+
+        /* socket.on('test', (data) => {
             console.log('Received from client', data);
 
             socket.emit('response', {message: 'Hello from the TestServer'});
+        }); */
+
+        socket.on('sendMessage', (data) => {
+            console.log('Message received from client:', data);
+
+            io.emit('chatMessage', data);
         });
 
         socket.on('disconnect', () => {
