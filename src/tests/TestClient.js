@@ -1,7 +1,8 @@
 const { Socket } = require('socket.io');
+
 const io = require('socket.io-client');
 
-const socket = io('http://localhost:3000');
+const socket = io(process.env.BASE_URL);
 
 
 socket.on('connect', () => {

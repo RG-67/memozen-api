@@ -33,6 +33,8 @@ module.exports = (server) => {
 
         socket.on('disconnect', () => {
             console.log('User disConnected', socket.id);
+
+            socket.broadcast.emit('serverMessage', {message: 'A user has left the chat!'});
         });
     });
 
