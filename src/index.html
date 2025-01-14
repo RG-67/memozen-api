@@ -28,7 +28,7 @@
         const messagesDiv = document.getElementById('messages');
 
         // Add message to the messages div
-        function addMessage(message, sender = 'Server') {
+        function addMessage(message, sender = 'Client') {
             const msg = document.createElement('div');
             msg.textContent = `${sender}: ${message}`;
             messagesDiv.appendChild(msg);
@@ -40,7 +40,7 @@
             const input = document.getElementById('messageInput');
             const message = input.value.trim();
             if (message) {
-                socket.emit('clientMessage', { message });
+                socket.emit('sendMessage', { message });
                 addMessage(message, 'You');
                 input.value = '';
             }
@@ -48,13 +48,20 @@
 
         // Listen for server messages
         socket.on('serverMessage', (data) => {
-            addMessage(data.message, 'Server');
+            console.log(`Server: ${data.message}`)
+            // addMessage(data.message, 'Server');
+        });
+
+        socket.on('chatMessage', (data) => {
+            if (data.sender !== socket.id) {
+                addMessage(data.message, 'Client');   
+            }
         });
 
         // Listen for broadcast messages
-        socket.on('broadcastMessage', (data) => {
+        /* socket.on('broadcastMessage', (data) => {
             addMessage(data.message, 'Broadcast');
-        });
+        }); */
 
         socket.on('connect', () => {
             addMessage('Connected to server', 'System');

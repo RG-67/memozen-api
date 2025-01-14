@@ -28,7 +28,7 @@ module.exports = (server) => {
         socket.on('sendMessage', (data) => {
             console.log('Message received from client:', data);
 
-            io.emit('chatMessage', data);
+            io.emit('chatMessage', {...data, sender: socket.id});
         });
 
         socket.on('disconnect', () => {
