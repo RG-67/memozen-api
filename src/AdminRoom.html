@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 600px; margin: auto; }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; }
+        .input-group input, .input-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        button { padding: 10px 20px; border: none; background-color: #007BFF; color: white; border-radius: 5px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        #messages { margin-top: 20px; border: 1px solid #ccc; padding: 10px; max-height: 300px; overflow-y: auto; }
+        #messages div { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Task Manager</h1>
+
+        <div class="input-group">
+            <label for="userId">User ID</label>
+            <input type="text" id="userId" placeholder="Enter User ID">
+        </div>
+
+        <div class="input-group">
+            <label for="taskTitle">Task Title</label>
+            <input type="text" id="taskTitle" placeholder="Enter Task Title">
+        </div>
+
+        <div class="input-group">
+            <label for="taskTag">Task Tag</label>
+            <input type="text" id="taskTag" placeholder="Enter Task Tag">
+        </div>
+
+        <div class="input-group">
+            <label for="taskPriority">Task Priority</label>
+            <select id="taskPriority">
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label for="taskStatus">Task Status</label>
+            <select id="taskStatus">
+                <option value="Pending">Pending</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+            </select>
+        </div>
+
+        <button onclick="assignTask()">Assign Task</button>
+
+        <h2>Messages</h2>
+        <div id="messages"></div>
+    </div>
+
+    <script>
+        const socket = io('http://localhost:3000'); // Update with your backend URL
+
+        const messagesDiv = document.getElementById('messages');
+
+        // Helper function to add messages to the DOM
+        function addMessage(message) {
+            const div = document.createElement('div');
+            div.textContent = message;
+            messagesDiv.appendChild(div);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // Join a room when the page loads (simulate the logged-in user)
+        const userId = document.getElementById('userId').value.trim(); // Replace with dynamic user ID
+        socket.emit('joinRoom', { userId });
+
+        // Assign a task to a user
+        function assignTask() {
+            const userId = document.getElementById('userId').value.trim();
+            const taskTitle = document.getElementById('taskTitle').value.trim();
+            const taskTag = document.getElementById('taskTag').value.trim();
+            const taskPriority = document.getElementById('taskPriority').value;
+            const taskStatus = document.getElementById('taskStatus').value;
+
+            if (userId && taskTitle) {
+                const task = { title: taskTitle, tag: taskTag, priority: taskPriority, status: taskStatus };
+                socket.emit('assignTask', { userId, task });
+                addMessage(`Task assigned to ${userId}: ${JSON.stringify(task)}`);
+            } else {
+                alert('Please provide a valid User ID and Task Title.');
+            }
+        }
+
+        // Listen for task assignments
+        socket.on('taskAssigned', (task) => {
+            addMessage(`Task assigned to you: ${JSON.stringify(task)}`);
+        });
+
+        // Listen for task updates
+        socket.on('taskUpdated', (data) => {
+            addMessage(`Task ${data.taskId} updated to status: ${data.status}`);
+        });
+
+        socket.on('connect', () => {
+            addMessage('Connected to server.');
+        });
+
+        socket.on('disconnect', () => {
+            addMessage('Disconnected from server.');
+        });
+    </script>
+</body>
+</html>

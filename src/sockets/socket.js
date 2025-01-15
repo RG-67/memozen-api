@@ -31,6 +31,21 @@ module.exports = (server) => {
             io.emit('chatMessage', {...data, sender: socket.id});
         });
 
+        socket.on('joinRoom', ({userId}) => {
+            socket.join(userId);
+            console.log(`User ${socket.id} join room ${userId}`);
+        });
+
+        socket.on('assignTask', ({userId, task}) => {
+            console.log(`Task assign to user ${userId}: `, task);
+            io.to(userId).emit('taskAssigned', task);
+        });
+
+        socket.on('updateTask', ({userId, taskId, status}) => {
+            console.log(`${taskId} updated by user ${userId} to status ${status}`);
+            io.to(userId).emit('taskUpdated', {taskId, status});
+        })
+
         socket.on('disconnect', () => {
             console.log('User disConnected', socket.id);
 
