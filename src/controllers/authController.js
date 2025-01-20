@@ -21,6 +21,10 @@ const register = async (req, res) => {
         const pass = await setPassword(password);
         const result = await db.query('SELECT prefix || middle || suffix AS user_id FROM user_id_sequence where id = $1', [1]);
         const userId = result.rows[0]?.user_id;
+
+        console.log("Request body ==>", req.body);
+        console.log("Request file ==>", req.file);
+
         const filePath = req.file.path;
         let imagePath = null;
         await db.query('Update user_id_sequence set suffix = suffix + 1 where id = $1', [1]);

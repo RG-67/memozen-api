@@ -6,9 +6,10 @@ const upload = require('../config/multer');
 
 const router = express.Router();
 
-router.use(authMiddleware, express.json());
+router.use(express.json());
+router.post('/register', upload.single('image'), authMiddleware, register);
 
-router.post('/register', upload.single('image'), register);
+router.use(authMiddleware, express.json());
 router.post('/login', login);
 
 
