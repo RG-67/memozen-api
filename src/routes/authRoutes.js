@@ -6,11 +6,17 @@ const upload = require('../config/multer');
 
 const router = express.Router();
 
-router.use(express.json());
-router.post('/register', upload.single('image'), authMiddleware, register);
 
-router.use(authMiddleware, express.json());
-router.post('/login', login);
+// router.post('/register', upload.single('file'), authMiddleware, register);
+router.post('/register', (req, res, next) => {
+    console.log("Upload middleware triggered");
+    next();
+}, upload.single('file'), (req, res) => {
+    console.log("Request file:", req.file);
+    console.log("Request body:", req.body);
+    res.status(200).json({ status: true, message: "File uploaded" });
+}, register);
+router.post('/login', authMiddleware, login);
 
 
 module.exports = router;

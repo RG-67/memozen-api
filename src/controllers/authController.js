@@ -22,18 +22,21 @@ const register = async (req, res) => {
         const result = await db.query('SELECT prefix || middle || suffix AS user_id FROM user_id_sequence where id = $1', [1]);
         const userId = result.rows[0]?.user_id;
 
-        console.log("Request body ==>", req.body);
-        console.log("Request file ==>", req.file);
+        /* console.log("Request body ==>", req.body);
+        console.log("Request file ==>", req.file); */
 
-        const filePath = req.file.path;
         let imagePath = null;
-        await db.query('Update user_id_sequence set suffix = suffix + 1 where id = $1', [1]);
-        if (filePath !== null && filePath !== "") {
-            imagePath = await uploadImage(filePath);
-            // fs.unlink(imagePath);
+        if (req.file) {
+            const filePath = req.file.path;
+            console.log("FilePath ==>", filePath);
+            if (filePath) {
+                imagePath = await uploadImage(filePath);
+                // fs.unlink(imagePath);
+            }
         }
-        await db.query('INSERT INTO users (userid, username, email, password, phone, userimage) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-            [userId, username, email, pass, phone, imagePath]);
+        // await db.query('Update user_id_sequence set suffix = suffix + 1 where id = $1', [1]);
+        // await db.query('INSERT INTO users (userid, username, email, password, phone, userimage) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+        //     [userId, username, email, pass, phone, imagePath]);
         const userResult = await db.query('SELECT userid, username, email, phone FROM users WHERE email = $1 AND phone = $2 AND username = $3', [email, phone, username]);
         res.status(200).json({ status: true, message: "User successfully registered", data: userResult.rows[0] });
     } catch (e) {
