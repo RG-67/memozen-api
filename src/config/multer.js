@@ -6,24 +6,27 @@ const uploadDir = path.join(__dirname, '../../uploads');
 
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir);
-    console.log("Upload directory path:", uploadDir);
-} else {
-    console.log("Directory exists:", fs.existsSync(uploadDir));
 }
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        console.log("Multer destination called");
         cb(null, uploadDir);
     },
     filename: (req, file, cb) => {
         const uniqueName = `${Date.now()}-${file.originalname}`;
-        console.log("Multer filename called");
         cb(null, uniqueName);
     }
 });
 
 const upload = multer({ storage });
+
+/* const upload = multer({
+    storage,
+    fileFilter: (req, file, cb) => {
+        console.log("Multer file filter called for file:", file);
+        cb(null, true); // Allow all files for testing purposes
+    }
+}); */
 
 
 module.exports = upload;
