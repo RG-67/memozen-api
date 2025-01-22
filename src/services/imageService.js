@@ -7,7 +7,7 @@ const uploadImage = async (imagePath) => {
         const result = await cldConfig.uploader.upload(imagePath, {
             folder: 'user_image',
         });
-        return result.secure_url;
+        return [result.secure_url, result.public_id];
     } catch (error) {
         throw error;
     }
