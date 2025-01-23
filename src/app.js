@@ -2,6 +2,7 @@ const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 const noteRoutes = require('./routes/noteRoutes');
+const groupRoutes = require('./routes/groupRoutes');
 const loggerMiddleware = require('./middlewares/loggerMiddleware');
 const errorMiddleware = require('./middlewares/errorMiddleware');
 
@@ -18,6 +19,7 @@ app.use(express.urlencoded({extended: true}));
 
 // app.use('/test', multerTest);
 
+app.use('/group', groupRoutes);
 app.use('/auth', authRoutes);
 app.use('/user', userRoutes);
 app.use('/task', taskRoutes);
