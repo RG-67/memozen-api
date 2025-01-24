@@ -19,11 +19,11 @@ app.use(express.urlencoded({extended: true}));
 
 // app.use('/test', multerTest);
 
-app.use('/group', groupRoutes);
 app.use('/auth', authRoutes);
 app.use('/user', userRoutes);
 app.use('/task', taskRoutes);
 app.use('/note', noteRoutes);
+app.use('/group', groupRoutes);
 
 app.use(errorMiddleware);
 

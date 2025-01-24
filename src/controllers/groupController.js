@@ -1,6 +1,6 @@
 const { raw } = require('express');
 const db = require('../config/db');
-const { uploadImage } = require('../services/imageService');
+const { uploadImage, uploadGroupImage } = require('../services/imageService');
 const fs = require('fs');
 
 

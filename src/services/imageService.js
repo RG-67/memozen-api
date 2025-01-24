@@ -13,5 +13,16 @@ const uploadImage = async (imagePath) => {
     }
 };
 
+const uploadGroupImage = async (imagePath) => {
+    try {
+        const result = await cldConfig.uploader.upload(imagePath, {
+            folder: 'group_image',
+        });
+        return [result.secure_url, result.public_id];
+    } catch (error) {
+        throw error;
+    }
+};
 
-module.exports = { uploadImage };
+
+module.exports = { uploadImage, uploadGroupImage };
