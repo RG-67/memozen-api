@@ -6,14 +6,14 @@ const fs = require('fs');
 
 const createGroup = async (req, res) => {
     try {
-        const { groupname, userid: rawUserIds } = req.body;
+        const { adminid, groupname, userid: rawUserIds } = req.body;
         const userid = typeof rawUserIds === "string" ? JSON.parse(rawUserIds) : rawUserIds;
         let imagePath, imageId;
         if (req.file) {
             const filePath = req.file.path;
             if (filePath) {
                 try {
-                    [imagePath, imageId] = await uploadImage(filePath);
+                    [imagePath, imageId] = await uploadGroupImage(filePath);
                     await fs.promises.unlink(filePath);
                 } catch (error) {
                     console.error(`Failed to delete temporary file: ${filePath}`, error);
@@ -24,7 +24,7 @@ const createGroup = async (req, res) => {
         const groupIdResult = await db.query("SELECT prefix || middle || suffix AS group_id from group_id_sequence where id = $1", [1]);
         const groupId = groupIdResult.rows[0].group_id;
         const insertGroupMembers = "INSERT INTO group_members(group_id, userid) VALUES($1, $2) ON CONFLICT(group_id, userid) DO NOTHING";
-        const insertGroups = await db.query("INSERT INTO groups(group_id, group_name, group_image, group_imageid) values($1, $2, $3, $4) RETURNING *", [groupId, groupname, imagePath, imageId]);
+        const insertGroups = await db.query("INSERT INTO groups(group_id, group_name, group_image, group_imageid, adminid) values($1, $2, $3, $4, $5) RETURNING *", [groupId, groupname, imagePath, imageId, adminid]);
         for (const users of userid) {
             await db.query(insertGroupMembers, [groupId, users]);
         }
