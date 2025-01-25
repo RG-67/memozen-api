@@ -39,11 +39,23 @@ const createGroup = async (req, res) => {
 }
 
 
+const getGroupByUserId = async (req, res) => {
+    try {
+        const {userId} = req.params;
+        const groupId = await db.query("SELECT group_id from group_members where userid = $1", [userId]);
+        const groupResult = await db.query("SELECT adminid, group_image, group_imageid, group_name from groups where group_id = $1", [groupId.rows[0].group_id]);
+        if (groupResult) {
+            const result = await db.query("SELECT group_members.userid,users.username,users.userimage,users.imageid,users.phone from group_members inner join users on group_members.userid=users.userid where group_members.group_id=$1", [groupId.rows[0].group_id]);
+            return res.status(200).json({status: true, message: "Data successfully retreived", data: result.rows});
+        }
+        return res.status(200).json({status: true, message: "Data not found", data: result});
+    } catch (error) {
+        res.status(500).json({status: false, message: "Server error", data: []});
+        console.error("Data retreived failed ==>", error);
+    }
+}
 
 
 
 
-
-
-
-module.exports = { createGroup };
+module.exports = { createGroup, getGroupByUserId };
