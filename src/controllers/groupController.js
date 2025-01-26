@@ -41,16 +41,29 @@ const createGroup = async (req, res) => {
 
 const getGroupByUserId = async (req, res) => {
     try {
-        const {userId} = req.params;
+        const { userId } = req.params;
+
+        const query = `select g.group_name as "groupName",
+                       g.group_id AS "groupID",
+                       g.group_image AS "groupImage",
+                       g.group_imageid AS "groupImageID",
+                       u.userid AS "userID",
+                       u.username AS "userName",
+                       u.userimage AS "userImage",
+                       u.imageid AS "userImageID" 
+                       FROM groups g JOIN group_members gm 
+                       ON g.group_id = gm.group_id JOIN users u on u.userid = gm.userid
+                       WHERE g.group_id in(SELECT group_id from group_members WHERE userid = $1) ORDER BY g.group_id, u.userid`;
+
         const groupId = await db.query("SELECT group_id from group_members where userid = $1", [userId]);
         const groupResult = await db.query("SELECT adminid, group_image, group_imageid, group_name from groups where group_id = $1", [groupId.rows[0].group_id]);
         if (groupResult) {
-            const result = await db.query("SELECT group_members.userid,users.username,users.userimage,users.imageid,users.phone from group_members inner join users on group_members.userid=users.userid where group_members.group_id=$1", [groupId.rows[0].group_id]);
-            return res.status(200).json({status: true, message: "Data successfully retreived", data: result.rows});
+            const result = await db.query("SELECT group_members.userid,users.username,users.userimage,users.imageid,users.phone from group_members INNER JOIN users on group_members.userid=users.userid where group_members.group_id=$1", [groupId.rows[0].group_id]);
+            return res.status(200).json({ status: true, message: "Data successfully retreived", data: result.rows });
         }
-        return res.status(200).json({status: true, message: "Data not found", data: result});
+        return res.status(200).json({ status: true, message: "Data not found", data: result });
     } catch (error) {
-        res.status(500).json({status: false, message: "Server error", data: []});
+        res.status(500).json({ status: false, message: "Server error", data: [] });
         console.error("Data retreived failed ==>", error);
     }
 }
