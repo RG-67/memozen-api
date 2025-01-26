@@ -42,26 +42,45 @@ const createGroup = async (req, res) => {
 const getGroupByUserId = async (req, res) => {
     try {
         const { userId } = req.params;
-
-        const query = `select g.group_name as "groupName",
+        const query = `select g.group_name AS "groupName",
                        g.group_id AS "groupID",
                        g.group_image AS "groupImage",
                        g.group_imageid AS "groupImageID",
                        u.userid AS "userID",
                        u.username AS "userName",
                        u.userimage AS "userImage",
-                       u.imageid AS "userImageID" 
-                       FROM groups g JOIN group_members gm 
+                       u.imageid AS "userImageID" ,
+                       u.phone AS "userPhone"
+                       FROM groups g JOIN group_members gm
                        ON g.group_id = gm.group_id JOIN users u on u.userid = gm.userid
-                       WHERE g.group_id in(SELECT group_id from group_members WHERE userid = $1) ORDER BY g.group_id, u.userid`;
-
-        const groupId = await db.query("SELECT group_id from group_members where userid = $1", [userId]);
-        const groupResult = await db.query("SELECT adminid, group_image, group_imageid, group_name from groups where group_id = $1", [groupId.rows[0].group_id]);
-        if (groupResult) {
-            const result = await db.query("SELECT group_members.userid,users.username,users.userimage,users.imageid,users.phone from group_members INNER JOIN users on group_members.userid=users.userid where group_members.group_id=$1", [groupId.rows[0].group_id]);
-            return res.status(200).json({ status: true, message: "Data successfully retreived", data: result.rows });
+                       WHERE g.group_id IN(SELECT group_id FROM group_members WHERE userid = $1) ORDER BY g.group_id, u.userid`;
+        const queryRes = await db.query(query, [userId]);
+        const groupData = queryRes.rows.reduce((acc, row) => {
+            const grpIndex = acc.findIndex(g => g.groupId === row.groupID);
+            const userData = {
+                userId: row.userID,
+                userName: row.userName,
+                userPhone: row.userPhone,
+                userImage: row.userImage,
+                userImageId: row.userImageID
+            };
+            if (grpIndex === -1) {
+                acc.push({
+                    groupId: row.groupID,
+                    groupName: row.groupName,
+                    groupImage: row.groupImage,
+                    groupImageId: row.groupImageID,
+                    groupData: [userData]
+                });
+            } else {
+                acc[grpIndex].groupData.push(userData);
+            }
+            return acc;
+        }, []);
+        if (groupData.length > 0) {
+            return res.status(200).json({ status: true, message: "Data successfully retreived", data: groupData });
         }
-        return res.status(200).json({ status: true, message: "Data not found", data: result });
+        return res.status(200).json({ status: true, message: "Data not found", data: [] });
     } catch (error) {
         res.status(500).json({ status: false, message: "Server error", data: [] });
         console.error("Data retreived failed ==>", error);
@@ -70,5 +89,49 @@ const getGroupByUserId = async (req, res) => {
 
 
 
+const getGroupUsersByGroupId = async (req, res) => {
+    try {
+        const { groupId } = req.params;
+        const query = `SELECT 
+                       g.adminid AS "adminID",
+                       u.userid AS "userID",
+                       u.username AS "userName",
+                       u.userimage AS "userImage",
+                       u.imageid AS "userImageID"
+                       FROM group_members gm JOIN users u on gm.userid = u.userid JOIN groups g ON gm.group_id=g.group_id AND gm.group_id=$1`;
+        const result = await db.query(query, [groupId]);
+        if (result.rows.length > 0) {
+            const adminId = result.rows.at(0).adminID;
+            let adminName = null, adminImage = null, adminImageId = null;
+            const formattedData = result.rows.map(row => {
+                if (row.userID === adminId) {
+                    adminName = row.userName;
+                    adminImage = row.userImage;
+                    adminImageId = row.userImageID;
+                }
+                return {
+                    userId: row.userID,
+                    userName: row.userName,
+                    userImage: row.userImage,
+                    userImageId: row.userImageID
+                };
+            });
+            const responseData = {
+                adminId: adminId,
+                adminName: adminName,
+                adminImage: adminImage,
+                adminImageId: adminImageId,
+                members: formattedData
+            }
+            return res.status(200).json({status: true, message: "Data not found", data: responseData});
+        }
+        res.status(200).json({status: true, message: "Data not found", data: []});
+    } catch (error) {
+        console.error("Error ==>", error);
+        res.status(500).json({ status: false, message: "Server error", data: [] });
+    }
+}
 
-module.exports = { createGroup, getGroupByUserId };
+
+
+module.exports = { createGroup, getGroupByUserId, getGroupUsersByGroupId };
