@@ -123,7 +123,7 @@ const getGroupUsersByGroupId = async (req, res) => {
                 adminImageId: adminImageId,
                 members: formattedData
             }
-            return res.status(200).json({status: true, message: "Data not found", data: responseData});
+            return res.status(200).json({status: true, message: "Data retreived successfully", data: responseData});
         }
         res.status(200).json({status: true, message: "Data not found", data: []});
     } catch (error) {
