@@ -56,4 +56,3 @@ module.exports = (server) => {
     return io;
 
 };
-

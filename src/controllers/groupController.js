@@ -42,7 +42,10 @@ const createGroup = async (req, res) => {
 const getGroupByUserId = async (req, res) => {
     try {
         const { userId } = req.params;
-        const query = `select g.group_name AS "groupName",
+        let totalRooms = 0;
+        const query = `select 
+                       (select count(*) from group_members where userid = $1) AS "totalRooms",
+                       g.group_name AS "groupName",
                        g.group_id AS "groupID",
                        g.group_image AS "groupImage",
                        g.group_imageid AS "groupImageID",
@@ -57,6 +60,7 @@ const getGroupByUserId = async (req, res) => {
         const queryRes = await db.query(query, [userId]);
         const groupData = queryRes.rows.reduce((acc, row) => {
             const grpIndex = acc.findIndex(g => g.groupId === row.groupID);
+            totalRooms = row.totalRooms;
             const userData = {
                 userId: row.userID,
                 userName: row.userName,
@@ -80,11 +84,11 @@ const getGroupByUserId = async (req, res) => {
             return acc;
         }, []);
         if (groupData.length > 0) {
-            return res.status(200).json({ status: true, message: "Data successfully retreived", data: groupData });
+            return res.status(200).json({ status: true, message: "Data successfully retreived", totalRooms: totalRooms, data: groupData });
         }
-        return res.status(200).json({ status: true, message: "Data not found", data: [] });
+        return res.status(200).json({ status: true, message: "Data not found", totalRooms: totalRooms, data: [] });
     } catch (error) {
-        res.status(500).json({ status: false, message: "Server error", data: [] });
+        res.status(500).json({ status: false, totalRooms: totalRooms, message: "Server error", data: [] });
         console.error("Data retreived failed ==>", error);
     }
 }
@@ -125,9 +129,9 @@ const getGroupUsersByGroupId = async (req, res) => {
                 adminImageId: adminImageId,
                 members: formattedData
             }
-            return res.status(200).json({status: true, message: "Data retreived successfully", data: responseData});
+            return res.status(200).json({ status: true, message: "Data retreived successfully", data: responseData });
         }
-        res.status(200).json({status: true, message: "Data not found", data: []});
+        res.status(200).json({ status: true, message: "Data not found", data: [] });
     } catch (error) {
         console.error("Error ==>", error);
         res.status(500).json({ status: false, message: "Server error", data: [] });
