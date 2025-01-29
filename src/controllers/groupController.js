@@ -70,9 +70,11 @@ const getGroupByUserId = async (req, res) => {
                     groupName: row.groupName,
                     groupImage: row.groupImage,
                     groupImageId: row.groupImageID,
+                    groupMemberCount: 1,
                     groupData: [userData]
                 });
             } else {
+                acc[grpIndex].groupMemberCount += 1;
                 acc[grpIndex].groupData.push(userData);
             }
             return acc;
