@@ -1,75 +1,112 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebSocket Chat</title>
+    <title>User-to-User Chat</title>
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        #messages { margin-bottom: 20px; max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; }
-        #inputContainer { display: flex; gap: 10px; }
-        #inputContainer input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
-        #inputContainer button { padding: 10px 20px; border: none; background-color: #007BFF; color: white; border-radius: 5px; cursor: pointer; }
-        #inputContainer button:hover { background-color: #0056b3; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        #messages {
+            margin-bottom: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+
+        #inputContainer {
+            display: flex;
+            gap: 10px;
+        }
+
+        #inputContainer input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #inputContainer button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #inputContainer button:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
+
 <body>
-    <h1>WebSocket Chat</h1>
+    <h1>User-to-User Chat</h1>
+
+    <label>Enter Your User ID:</label>
+    <input type="text" id="userIdInput" placeholder="Your User ID">
+    <button onclick="joinChat()">Join Chat</button>
+    <br><br>
+
+    <label>Enter Receiver ID:</label>
+    <input type="text" id="receiverIdInput" placeholder="Receiver User ID">
+
+    <h2>Messages</h2>
     <div id="messages"></div>
+
     <div id="inputContainer">
         <input type="text" id="messageInput" placeholder="Type your message">
         <button onclick="sendMessage()">Send</button>
     </div>
 
     <script>
-        const socket = io('http://localhost:3000'); // Update with your server URL if deployed
+        const socket = io('http://localhost:3000'); // Change to your backend URL
 
-        const messagesDiv = document.getElementById('messages');
+        let userId = null;
+        let receiverId = null;
 
-        // Add message to the messages div
-        function addMessage(message, sender = 'Client') {
-            const msg = document.createElement('div');
-            msg.textContent = `${sender}: ${message}`;
-            messagesDiv.appendChild(msg);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight; // Auto-scroll to the latest message
+        function joinChat() {
+            userId = document.getElementById('userIdInput').value.trim();
+            if (userId) {
+                socket.emit('joinRoom', { userId });
+                alert(`Joined as ${userId}`);
+            }
         }
 
-        // Send message to the server
         function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const message = input.value.trim();
-            if (message) {
-                socket.emit('sendMessage', { message });
-                addMessage(message, 'You');
-                input.value = '';
+            const message = document.getElementById('messageInput').value.trim();
+            receiverId = document.getElementById('receiverIdInput').value.trim();
+            console.log("Sending to receiverId:", receiverId);
+            if (message && userId && receiverId) {
+                socket.emit('sendMessage', { senderId: userId, receiverId, message });
+                addMessage(`You: ${message}`);
+                document.getElementById('messageInput').value = ''; // Clear input
+            } else {
+                alert("Enter valid userId, receiverId, and message!");
             }
         }
 
-        // Listen for server messages
-        socket.on('serverMessage', (data) => {
-            console.log(`Server: ${data.message}`)
-            // addMessage(data.message, 'Server');
-        });
+        function addMessage(text, sender) {
+            const messagesDiv = document.getElementById('messages');
+            const msg = document.createElement('div');
+            msg.textContent = `${sender}: ${text}`;
+            messagesDiv.appendChild(msg);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight; // Auto-scroll
+        }
 
+        // Receive messages
         socket.on('chatMessage', (data) => {
-            if (data.sender !== socket.id) {
-                addMessage(data.message, 'Client');   
-            }
-        });
-
-        // Listen for broadcast messages
-        /* socket.on('broadcastMessage', (data) => {
-            addMessage(data.message, 'Broadcast');
-        }); */
-
-        socket.on('connect', () => {
-            addMessage('Connected to server', 'System');
-        });
-
-        socket.on('disconnect', () => {
-            addMessage('Disconnected from server', 'System');
+            console.log('New message:', data);
+            addMessage(`${data.sender_id}: ${data.message}`, data.sender_id);
         });
     </script>
 </body>
+
 </html>
