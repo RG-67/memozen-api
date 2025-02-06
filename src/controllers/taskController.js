@@ -28,10 +28,10 @@ const getTasks = async (req, res) => {
     try {
         const { userid } = req.query;
         const response = await db.query(`SELECT taskid, title, description, deadline, priority, category, status, reminder, 
-                                         to_Char(created_at::timestamp, 'HH12:MI AM') AS "createTime"
+                                         to_Char(created_at::timestamp, 'HH12:MI AM') AS "createTime", percentage
                                          FROM tasks WHERE userid = $1 ORDER BY id asc`,
             [userid]);
-        res.status(200).json({ status: true, message: "Tasks successfully retrieved", data: response.rows });
+        res.status(200).json({ status: true, message: "Tasks successfully retrieved", totalTasks: response.rowCount, data: response.rows });
     } catch (e) {
         res.status(500).json({ status: false, message: 'Internal server error', data: [] });
         console.error(e);
