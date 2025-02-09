@@ -20,7 +20,8 @@ const createNote = async (req, res) => {
 const getNotes = async (req, res) => {
     try {
         const { userid } = req.query;
-        const response = await db.query('SELECT noteid, title, content, tag FROM notes WHERE userid = $1 ORDER BY id asc',
+        const response = await db.query(`SELECT noteid, title, content, tag, to_Char(created_at::timestamp, 'HH12:MI AM') AS "createTime"
+                                         FROM notes WHERE userid = $1 ORDER BY id asc`,
             [userid]);
         res.status(200).json({ status: true, message: "Notes successfully retrieved", data: response.rows });
     } catch (e) {
