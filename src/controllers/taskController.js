@@ -87,6 +87,22 @@ const getGroupTask = async (req, res) => {
 }
 
 
+const getTaskById = async (req, res) => {
+    try {
+        const { taskId } = req.query;
+        const query = `SELECT title, description, deadline, priority, category, status, created_at FROM tasks WHERE taskid = $1 AND "isGroup" = $2 AND groupid = $3`;
+        const response = await db.query(query, [taskId, 0, '']);
+        if (response.rows.length > 0) {
+            return res.status(200).json({ status: true, message: 'Data successfully retreived', data: response.rows });
+        }
+        return res.status(200).json({ status: false, message: 'Data not found', data: {} });
+    } catch (error) {
+        console.error("Error", error);
+        return res.status(500).json({ status: false, message: 'Internal server error', data: {} });
+    }
+}
 
 
-module.exports = { createTask, getTasks, updateTask, deleteTask, getGroupTask };
+
+
+module.exports = { createTask, getTasks, updateTask, deleteTask, getGroupTask, getTaskById };
