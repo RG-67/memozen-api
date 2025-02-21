@@ -29,8 +29,8 @@ const getTasks = async (req, res) => {
         const { userid } = req.query;
         const response = await db.query(`SELECT taskid, title, description, deadline, priority, category, status, reminder, 
                                          to_Char(created_at::timestamp, 'HH12:MI AM') AS "createTime", percentage
-                                         FROM tasks WHERE userid = $1 and "isGroup" is null ORDER BY id asc`,
-            [userid]);
+                                         FROM tasks WHERE userid = $1 and "isGroup" = $2 ORDER BY id asc`,
+            [userid, 0]);
         res.status(200).json({ status: true, message: "Tasks successfully retrieved", totalTasks: response.rowCount, data: response.rows });
     } catch (e) {
         res.status(500).json({ status: false, message: 'Internal server error', data: [] });
@@ -90,10 +90,13 @@ const getGroupTask = async (req, res) => {
 const getTaskById = async (req, res) => {
     try {
         const { taskId } = req.query;
+        // Select row_to_json(t)::jsonb - 'id' - 'created_at' - 'updated_at' as result from (Select * from tasks where taskid = $1 and userid = $2)t
         const query = `SELECT title, description, deadline, priority, category, status, created_at FROM tasks WHERE taskid = $1 AND "isGroup" = $2 AND groupid = $3`;
+        /* const query = `SELECT row_to_json(t)::jsonb - 'title' - 'description' - 'deadline' - 'priority' - 'category' - 'status' - 'created_at' as result FROM (
+        SELECT * FROM tasks WHERE taskid = $1 AND "isGroup" = $2 AND groupid = $3)t`; */
         const response = await db.query(query, [taskId, 0, '']);
         if (response.rows.length > 0) {
-            return res.status(200).json({ status: true, message: 'Data successfully retreived', data: response.rows });
+            return res.status(200).json({ status: true, message: 'Data successfully retreived', data: response.rows[0] });
         }
         return res.status(200).json({ status: false, message: 'Data not found', data: {} });
     } catch (error) {
