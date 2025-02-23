@@ -75,7 +75,7 @@ const getGroupTask = async (req, res) => {
     try {
         const { userid } = req.query;
         const query = `SELECT group_id,t.taskid,t.title,t.description,t.category,t.status,t.percentage,1 as tasks
-                       FROM group_members gm JOIN tasks t ON gm.group_id = t.groupid WHERE gm.userid = $1 and "isGroup" = $2`;
+                       FROM group_members gm JOIN tasks t ON gm.group_id = t.groupid WHERE gm.userid = $1 and t."isGroup" = $2`;
         const response = await db.query(query, [userid, 1]);
         if (response) {
             return res.status(200).json({ status: true, message: 'Data successfully retreived', totalGroupTasks: response.rowCount, data: response.rows });

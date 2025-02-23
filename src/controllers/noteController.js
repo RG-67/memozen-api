@@ -3,7 +3,7 @@ const db = require('../config/db');
 
 const createNote = async (req, res) => {
     try {
-        const { userid, title, content, tag} = req.body;
+        const { userid, title, content, tag } = req.body;
         const getNoteId = await db.query('SELECT prefix || middle || suffix AS note_id FROM note_id_sequence WHERE id = $1', [1]);
         const noteId = getNoteId.rows[0]?.note_id;
         await db.query('UPDATE note_id_sequence SET suffix = suffix + 1 WHERE id = $1', [1]);
@@ -20,7 +20,7 @@ const createNote = async (req, res) => {
 const getNotes = async (req, res) => {
     try {
         const { userid } = req.query;
-        const response = await db.query(`SELECT noteid, title, content, tag, to_Char(created_at::timestamp, 'HH12:MI AM') AS "createTime"
+        const response = await db.query(`SELECT noteid, title, content, tag, to_Char(updated_at::timestamp, 'HH12:MI AM') AS "createTime"
                                          FROM notes WHERE userid = $1 ORDER BY id asc`,
             [userid]);
         res.status(200).json({ status: true, message: "Notes successfully retrieved", data: response.rows });
@@ -40,8 +40,8 @@ const updateNote = async (req, res) => {
         if (response.rows.length === 0) {
             return res.status(404).json({ status: false, message: 'No note found', data: {} });
         }
-        const result = await db.query(`Select row_to_json(t)::jsonb - 'id' - 'created_at' - 'updated_at' as result from (Select * from notes where noteid = $1 and userid = $2)t`, [noteid, userid]);
-        res.status(200).json({ status: true, message: "Note successfully updated", data: result.rows[0].result});
+        const result = await db.query(`Select row_to_json(t)::jsonb - 'id' - 'created_at' as result from (Select * from notes where noteid = $1 and userid = $2)t`, [noteid, userid]);
+        res.status(200).json({ status: true, message: "Note successfully updated", data: result.rows[0].result });
     } catch (e) {
         res.status(500).json({ status: false, message: 'Internal server error', data: {} });
         console.error(e);
@@ -58,11 +58,26 @@ const deleteNote = async (req, res) => {
         }
         res.status(200).json({ status: true, message: "Note successfully deleted", data: {} });
     } catch (e) {
-        res.status(500).json({ status: false, message: 'Internal server error', data: {}});
+        res.status(500).json({ status: false, message: 'Internal server error', data: {} });
         console.error(e);
     }
 }
 
 
+const getNoteByNoteId = async (req, res) => {
+    try {
+        const { noteId, userId } = req.query;
+        const query = `SELECT title, content, tag, updated_at FROM notes WHERE noteid = $1 AND userid = $2`;
+        const result = await db.query(query, [noteId, userId]);
+        if (result.rows.length === 0) {
+            return res.status(200).json({ status: false, message: "Note not found", data: {} });
+        }
+        return res.status(200).json({ status: true, message: "Note successfully retreived", data: result.rows[0] });
+    } catch (error) {
+        return res.status(500).json({ status: false, message: "Internal sever error", data: {} });
+    }
+}
 
-module.exports = { createNote, getNotes, updateNote, deleteNote };
+
+
+module.exports = { createNote, getNotes, updateNote, deleteNote, getNoteByNoteId };
