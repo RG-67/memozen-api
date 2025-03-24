@@ -3,6 +3,7 @@ const userRoutes = require('./routes/userRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 const noteRoutes = require('./routes/noteRoutes');
 const groupRoutes = require('./routes/groupRoutes');
+const cors = require('cors');
 const loggerMiddleware = require('./middlewares/loggerMiddleware');
 const errorMiddleware = require('./middlewares/errorMiddleware');
 
@@ -12,7 +13,7 @@ const app = express();
 
 
 
-
+app.use(cors());
 app.use(loggerMiddleware);
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
