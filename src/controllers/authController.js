@@ -50,7 +50,7 @@ const register = async (req, res) => {
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const response = await db.query('SELECT userid, username, email, phone, userimage FROM users WHERE email = $1', [email]);
+        const response = await db.query(`SELECT 'Admin' AS type, userid, username, email, phone, userimage FROM users WHERE email = $1`, [email]);
         if (response.rows.length === 0) {
             res.status(404).json({ status: false, message: 'Invalid email', data: {} });
             return;
