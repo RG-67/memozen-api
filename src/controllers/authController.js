@@ -50,16 +50,23 @@ const register = async (req, res) => {
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const response = await db.query(`SELECT 'Admin' AS type, userid, username, email, phone, userimage FROM users WHERE email = $1`, [email]);
+        const response = await db.query(`SELECT type, userid, username, email, phone, userimage FROM users WHERE email = $1`, [email]);
         if (response.rows.length === 0) {
             res.status(404).json({ status: false, message: 'Invalid email', data: {} });
             return;
         }
         const dbPassword = await db.query('SELECT password FROM users WHERE email = $1', [email]);
-        const pass = await comparePassword(password, dbPassword.rows[0]?.password);
-        if (!pass) {
-            res.status(404).json({ status: false, message: 'Invalid password', data: {} });
-            return;
+        if (response.rows[0]?.type === "Member") {
+            const pass = await comparePassword(password, dbPassword.rows[0]?.password);
+            if (!pass) {
+                res.status(404).json({ status: false, message: 'Invalid password', data: {} });
+                return;
+            }
+        } else {
+            if (dbPassword.rows[0].password !== password) {
+                res.status(404).json({ status: false, message: 'Invalid password', data: {} });
+                return;
+            }
         }
         res.status(200).json({ status: true, message: "User successfully logged in", data: response.rows[0] });
     } catch (e) {
