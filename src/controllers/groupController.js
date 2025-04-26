@@ -139,5 +139,26 @@ const getGroupUsersByGroupId = async (req, res) => {
 }
 
 
+const getGroupList = async(req, res) => {
+    try {
+        const result = await db.query(`
+            SELECT g.group_id AS "groupId", g.group_name AS "groupName", g.group_image AS "groupImage", 
+            TO_CHAR(g.created_at::"timestamp" , 'FMDDth Mon, YYYY') AS "createdAt", 
+            TO_CHAR(g.updated_at::"timestamp" , 'FMDDth Mon, YYYY') AS "updatedAt", 
+            g.adminid AS "groupLead",
+            COUNT(gm.userid) AS "totalMembers"
+            FROM groups g JOIN group_members gm ON g.group_id = gm.group_id GROUP BY
+            g.group_id, g.group_name, g.group_image, g.created_at, g.updated_at, g.adminid
+            ORDER BY g.group_id
+            `);
+        if (result.rows.length > 0) return res.status(200).json({status: true, message: 'Data successfully retrieved', data: result.rows});
+        return res.status(200).json({status: false, message: 'Group not found', data: []});
+    } catch (error) {
+        console.error("getGroupListError ==> ", error);
+        return res.status(500).json({status: false, message: 'Internal server error', data: []});
+    }
+}
 
-module.exports = { createGroup, getGroupByUserId, getGroupUsersByGroupId };
+
+
+module.exports = { createGroup, getGroupByUserId, getGroupUsersByGroupId, getGroupList };

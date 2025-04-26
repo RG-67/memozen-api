@@ -41,4 +41,19 @@ const updateUserProfile = async (req, res) => {
     }
 }
 
-module.exports = { getUserProfile, updateUserProfile };
+
+const getAllUsers = async(req, res) => {
+    try {
+        const result = await db.query(`SELECT u.userid, u.username, u.userimage, gm.group_id, g.group_name FROM users u LEFT JOIN group_members gm
+        ON u.userid=gm.userid LEFT JOIN groups g ON g.group_id=gm.group_id WHERE u.type=$1`, ['Member']);
+
+        if (result.rows.length > 0) return res.status(200).json({status: true, message: 'Data successfully retrieved', data: result.rows});
+        return res.status(200).json({status: false, message: 'Users not found', data: []});
+    } catch (error) {
+        res.status(500).json({status: false, message: 'Internal server error', data: []});
+        console.error(error);
+    }
+}
+
+
+module.exports = { getUserProfile, updateUserProfile, getAllUsers };
