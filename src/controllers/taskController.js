@@ -9,7 +9,7 @@ const createTask = async (req, res) => {
         const getTaskId = await db.query('SELECT prefix || middle || suffix AS task_id FROM task_id_sequence WHERE id = $1', [1]);
         const taskId = getTaskId.rows[0]?.task_id;
         await db.query('UPDATE task_id_sequence SET suffix = suffix + 1 WHERE id = $1', [1]);
-        await db.query('INSERT INTO tasks (taskid, userid, title, description, deadline, priority, category, status, reminderm) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
+        await db.query('INSERT INTO tasks (taskid, userid, title, description, deadline, priority, category, status, reminder) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
             [taskId, userid, title, description, deadline, priority, category, status, reminder]);
 
         if (reminder !== null && reminder !== "") {

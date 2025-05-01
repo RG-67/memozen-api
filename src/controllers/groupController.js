@@ -139,7 +139,7 @@ const getGroupUsersByGroupId = async (req, res) => {
 }
 
 
-const getGroupList = async(req, res) => {
+const getGroupList = async (req, res) => {
     try {
         const result = await db.query(`
             SELECT g.group_id AS "groupId", g.group_name AS "groupName", g.group_image AS "groupImage", 
@@ -151,14 +151,31 @@ const getGroupList = async(req, res) => {
             g.group_id, g.group_name, g.group_image, g.created_at, g.updated_at, g.adminid
             ORDER BY g.group_id
             `);
-        if (result.rows.length > 0) return res.status(200).json({status: true, message: 'Data successfully retrieved', data: result.rows});
-        return res.status(200).json({status: false, message: 'Group not found', data: []});
+        if (result.rows.length > 0) return res.status(200).json({ status: true, message: 'Data successfully retrieved', data: result.rows });
+        return res.status(200).json({ status: false, message: 'Group not found', data: [] });
     } catch (error) {
         console.error("getGroupListError ==> ", error);
-        return res.status(500).json({status: false, message: 'Internal server error', data: []});
+        return res.status(500).json({ status: false, message: 'Internal server error', data: [] });
+    }
+}
+
+
+const createGroupTask = async (req, res) => {
+    try {
+        const { title, description, deadline, priority, category, status, percentage, groupId } = req.body;
+        const getTaskId = await db.query('SELECT prefix || middle || suffix AS task_id FROM task_id_sequence WHERE id = $1', [1]);
+        const taskId = getTaskId.rows[0]?.task_id;
+        const result = await db.query(`
+            INSERT INTO tasks(taskid, title, description, deadline, priority, category, status, percentage, "isGroup", groupid)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *
+            `, [taskId, title, description, deadline, priority, category, status, percentage, 1, groupId]);
+        return res.status(200).json({ status: true, message: 'Group task create successfully', data: {} });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ status: false, message: 'Internal server error', data: {} });
     }
 }
 
 
 
-module.exports = { createGroup, getGroupByUserId, getGroupUsersByGroupId, getGroupList };
+module.exports = { createGroup, getGroupByUserId, getGroupUsersByGroupId, getGroupList, createGroupTask };
