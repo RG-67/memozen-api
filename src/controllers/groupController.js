@@ -177,5 +177,40 @@ const createGroupTask = async (req, res) => {
 }
 
 
+const getGroupTaskList = async (req, res) => {
+    try {
+        const result = await db.query(`
+            SELECT t.taskid, t.title, t.description, t.deadline, t.priority, t.category, t.status, t.created_at AS "createdAt", 
+            t.updated_at AS "updatedAt", t.percentage, t.groupid, g.group_image AS "groupImage", g.group_name AS "groupName"
+            FROM tasks t JOIN groups g ON t.groupid = g.group_id
+             WHERE "isGroup" = $1
+            `, [1]);
+        if (result.rowCount > 0) {
+            return res.status(200).json({ status: true, message: 'Group tasks retrieved successfully', data: result.rows });
+        }
+        return res.status(200).json({ status: false, message: 'Group not found', data: [] });
+    } catch (error) {
+        console.log("GetGroupTasksErr: ", error);
+        return res.status(500).json({ status: false, message: 'Internal server error', data: [] });
+    }
+}
 
-module.exports = { createGroup, getGroupByUserId, getGroupUsersByGroupId, getGroupList, createGroupTask };
+
+const getTaskGroupList = async (req, res) => {
+    try {
+        const result = await db.query(`
+            SELECT g.group_id AS "groupId" FROM groups g LEFT JOIN tasks t ON g.group_id = t.groupid WHERE t.groupid IS NULL
+            `);
+        if (result.rowCount > 0) {
+            return res.status(200).json({ status: true, message: 'Group retreived successfully', data: result.rows });
+        }
+        return res.status(200).json({ status: false, message: 'Group not found', data: [] });
+    } catch (error) {
+        console.log("GetGroupListTask: ", error);
+        return res.status(500).json({ status: false, message: 'Internal server error', data: [] });
+    }
+}
+
+
+
+module.exports = { createGroup, getGroupByUserId, getGroupUsersByGroupId, getGroupList, createGroupTask, getGroupTaskList, getTaskGroupList };
