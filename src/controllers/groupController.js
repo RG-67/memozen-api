@@ -199,7 +199,7 @@ const getGroupTaskList = async (req, res) => {
 const getTaskGroupList = async (req, res) => {
     try {
         const result = await db.query(`
-            SELECT g.group_id AS "groupId" FROM groups g LEFT JOIN tasks t ON g.group_id = t.groupid WHERE t.groupid IS NULL
+            SELECT g.group_id || ' (' || group_name || ')' AS "groupId" FROM groups g LEFT JOIN tasks t ON g.group_id = t.groupid WHERE t.groupid IS NULL
             `);
         if (result.rowCount > 0) {
             return res.status(200).json({ status: true, message: 'Group retreived successfully', data: result.rows });
