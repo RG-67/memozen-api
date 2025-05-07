@@ -165,6 +165,7 @@ const createGroupTask = async (req, res) => {
         const { title, description, deadline, priority, category, status, percentage, groupId } = req.body;
         const getTaskId = await db.query('SELECT prefix || middle || suffix AS task_id FROM task_id_sequence WHERE id = $1', [1]);
         const taskId = getTaskId.rows[0]?.task_id;
+        await db.query('UPDATE task_id_sequence SET suffix = suffix + 1 WHERE id = $1', [1]);
         const result = await db.query(`
             INSERT INTO tasks(taskid, title, description, deadline, priority, category, status, percentage, "isGroup", groupid)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *
